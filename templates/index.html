@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Cryptic Notes</title>
+    <link rel="icon" type="image/png" href="{{ url_for('static', path='cryptic_notes_logo.png') }}">
+    <link rel="stylesheet" href="{{ url_for('static', path='index.css') }}">
+</head>
+<body data-has-mnemonic="{{ 'yes' if has_mnemonic else 'no' }}">
+    <header class="header">
+        <h1>🔐 Cryptic Notes</h1>
+        <button type="button" class="settings-toggle" id="settings-toggle" aria-expanded="false" aria-controls="settings-panel">
+            <span class="burger" aria-hidden="true">
+                <span></span>
+                <span></span>
+                <span></span>
+            </span>
+            Settings
+        </button>
+    </header>
+
+    {% if new_account %}
+    <p class="new-account-hint">New account created. Copy your mnemonic from Settings and store it safely.</p>
+    {% endif %}
+    {% if error %}
+    <p class="error-banner" role="alert">{{ error }}</p>
+    {% endif %}
+    <div id="drawer-overlay" class="drawer-overlay" aria-hidden="true"></div>
+    <aside id="settings-panel" class="settings-drawer" aria-hidden="true">
+        <h2 class="settings-title">Settings</h2>
+        {% if has_mnemonic %}
+            <label for="mnemonic-display">Mnemonic</label>
+            <div class="mnemonic-field">
+                <input type="password" id="mnemonic-display" value="[Hidden for security]" readonly>
+                <button type="button" class="mnemonic-toggle" id="mnemonic-toggle">See mnemonic</button>
+            </div>
+            <div class="settings-actions">
+                <form method="post" action="./logout">
+                    <button type="submit" class="logout-btn">Log Out</button>
+                </form>
+                <span class="hint">Stored for 7 days.</span>
+            </div>
+            <div class="settings-links">
+                <a href="./stats" class="stats-link">See stats</a>
+            </div>
+        {% else %}
+            <form method="post">
+                <label for="mnemonic">Enter your BIP39 mnemonic phrase:</label>
+                <textarea name="mnemonic" id="mnemonic" rows="3" placeholder="word1 word2 word3 ..."></textarea>
+                <button type="submit">Use Mnemonic</button>
+            </form>
+        {% endif %}
+    </aside>
+
+    {% if not has_mnemonic %}
+    <main class="landing-page">
+        <section class="hero">
+            <h2 class="hero-title">Your notes. Truly private.</h2>
+            <p class="hero-subtitle">Cryptic Notes is a zero-knowledge encrypted notebook. No accounts. No tracking. Just your words, secured by mathematics.</p>
+            
+            <form method="post" action="./create-account" class="cta-form">
+                <button type="submit" class="cta-button">Create Account</button>
+            </form>
+            
+            <button type="button" class="existing-account-link" id="open-settings">
+                Already have an account?
+            </button>
+        </section>
+
+        <section class="features">
+            <div class="feature-card">
+                <div class="feature-icon">🔐</div>
+                <h3>Military-Grade Encryption</h3>
+                <p>Your notes are encrypted with AES-256 using a key derived from your 12-word mnemonic phrase. Not even we can read your content.</p>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon">👤</div>
+                <h3>Completely Anonymous</h3>
+                <p>No email. No username. No identity. Your notes are linked only to your mnemonic. We don't know who you are, and we don't want to know.</p>
+            </div>
+
+            <div class="feature-card">
+                <div class="feature-icon">📝</div>
+                <h3>Simple & Expanding</h3>
+                <p>Currently supports text notes with markdown formatting. More content types coming soon — all with the same zero-knowledge guarantee.</p>
+            </div>
+
+            <div class="feature-card feature-card--warning">
+                <div class="feature-icon">⚠️</div>
+                <h3>No Recovery. No Exceptions.</h3>
+                <p>If you lose your 12-word mnemonic, your notes are gone forever. There is no password reset. There is no support ticket. Write it down. Store it safely. This is the cost of true privacy.</p>
+            </div>
+        </section>
+
+        <section class="how-it-works">
+            <h2>How it works</h2>
+            <div class="steps">
+                <div class="step">
+                    <span class="step-number">1</span>
+                    <p><strong>Create</strong> — Click "Create Account" to generate your unique 12-word mnemonic phrase.</p>
+                </div>
+                <div class="step">
+                    <span class="step-number">2</span>
+                    <p><strong>Save</strong> — Write down your mnemonic somewhere secure. This is your only key.</p>
+                </div>
+                <div class="step">
+                    <span class="step-number">3</span>
+                    <p><strong>Write</strong> — Start taking notes. Everything is encrypted before it leaves your browser.</p>
+                </div>
+                <div class="step">
+                    <span class="step-number">4</span>
+                    <p><strong>Return</strong> — Enter your mnemonic on any device to access your notes instantly.</p>
+                </div>
+            </div>
+        </section>
+
+        <section class="final-cta">
+            <h2>Ready to own your privacy?</h2>
+            <form method="post" action="./create-account">
+                <button type="submit" class="cta-button cta-button--large">Create Your Account</button>
+            </form>
+            <p class="final-cta-hint">Takes 5 seconds. No email required.</p>
+        </section>
+    </main>
+    {% endif %}
+
+    {% if has_mnemonic %}
+        <div id="notes-container">
+            <div id="notes-loading">Decrypting notes...</div>
+        </div>
+        <script id="encrypted-notes" type="application/json">{% if encrypted_notes %}{{ encrypted_notes|tojson }}{% else %}[]{% endif %}</script>
+    {% endif %}
+
+    {% if has_mnemonic %}
+        <button type="button" class="fab" id="new-note-btn" aria-haspopup="dialog" aria-controls="new-note-modal">New</button>
+
+        <div id="new-note-modal" class="modal" aria-hidden="true" aria-labelledby="new-note-modal-title">
+            <div class="modal-overlay" data-new-close></div>
+            <div class="modal-dialog" role="dialog" aria-modal="true">
+                <h3 id="new-note-modal-title">New note</h3>
+                <form method="post" action="./new" id="new-note-form">
+                    <!-- Removed mnemonic hidden input - using cookie instead -->
+                    <label for="new-note-title">Title</label>
+                    <input type="text" name="title" id="new-note-title" placeholder="Note title">
+                    <label for="new-note-body">Content</label>
+                    <textarea name="body" id="new-note-body" rows="6" placeholder="Write your note..."></textarea>
+                    <div class="checkbox-field">
+                        <input type="checkbox" name="nsfw" id="new-note-nsfw" value="1">
+                        <label for="new-note-nsfw">NSFW</label>
+                    </div>
+                    <div class="modal-actions">
+                        <button type="button" class="secondary" data-new-close>Cancel</button>
+                        <button type="submit" class="primary">Save</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    {% endif %}
+
+    <form id="priority-form" method="post" action="./priority" class="visually-hidden">
+        <input type="hidden" name="note_id" id="priority-note-id" value="">
+        <input type="hidden" name="priority" id="priority-value" value="">
+        <!-- Removed mnemonic hidden input - using cookie instead -->
+    </form>
+
+    <div id="priority-modal" class="modal" aria-hidden="true">
+        <div class="modal-overlay" data-modal-close></div>
+        <div class="modal-dialog" role="dialog" aria-modal="true" aria-labelledby="priority-modal-title">
+            <h3 id="priority-modal-title">Edit priority</h3>
+            <p class="modal-text">Set a number to prioritize this note or remove it.</p>
+            <label for="priority-input">Priority</label>
+            <input type="text" id="priority-input" inputmode="numeric" placeholder="e.g. 1">
+            <p id="priority-error" class="modal-error" role="alert"></p>
+            <p class="modal-hint">Lower numbers appear closer to the top.</p>
+            <div class="modal-actions">
+                <button type="button" class="secondary" data-modal-close>Cancel</button>
+                <button type="button" class="danger" id="priority-clear">Remove</button>
+                <button type="button" class="primary" id="priority-save">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="preview-modal" class="modal" aria-hidden="true">
+        <div class="modal-overlay" data-preview-close></div>
+        <div class="modal-dialog" role="dialog" aria-modal="true" aria-labelledby="preview-modal-title">
+            <div class="preview-header">
+                <h3 id="preview-modal-title">Full note preview</h3>
+                <button type="button" class="close-btn" data-preview-close aria-label="Close preview">Close</button>
+            </div>
+            <div id="preview-body" class="preview-body"></div>
+        </div>
+    </div>
+
+    <footer class="site-footer">
+        <a href="/privacy">Privacy Policy</a>
+    </footer>
+
+    <script src="{{ url_for('static', path='crypto.js') }}"></script>
+    <script src="{{ url_for('static', path='app.js') }}" defer></script>
+</body>
+</html>
+

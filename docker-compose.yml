@@ -1,0 +1,14 @@
+
+services:
+  cryptic_notes:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    ports:
+      - "4000:8000"
+    environment:
+      - PYTHONDONTWRITEBYTECODE=1
+      - PYTHONUNBUFFERED=1
+    volumes:
+      - ./credentials.json:/app/credentials.json:ro

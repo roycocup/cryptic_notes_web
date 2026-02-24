@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create account – Cryptic Notes</title>
+    <link rel="stylesheet" href="{{ url_for('static', path='index.css') }}">
+</head>
+<body>
+    <header class="header">
+        <h1>🔐 Cryptic Notes</h1>
+        <a href="/" class="settings-toggle">← Back</a>
+    </header>
+
+    <main class="create-account">
+        <h2 class="settings-title">Create new account</h2>
+        {% if not mnemonic %}
+            <p class="create-account-intro">Generate a new BIP39 mnemonic. You will need to save it to sign in again later.</p>
+            <form method="post" action="./create-account">
+                <button type="submit">Generate new mnemonic</button>
+            </form>
+        {% else %}
+            <p class="create-account-warning">Save this phrase somewhere safe. Without it you cannot access your notes.</p>
+            <label for="new-mnemonic-display">Your mnemonic</label>
+            <div class="mnemonic-field">
+                <input type="password" id="new-mnemonic-display" value="{{ mnemonic }}" readonly>
+                <button type="button" class="mnemonic-toggle" id="new-mnemonic-toggle">Show</button>
+            </div>
+            <button type="button" class="copy-mnemonic" id="copy-mnemonic">Copy to clipboard</button>
+            <form method="post" action="./" class="use-account-form">
+                <input type="hidden" name="mnemonic" value="{{ mnemonic }}">
+                <button type="submit" class="primary">Use this account</button>
+            </form>
+        {% endif %}
+    </main>
+
+    <script>
+        (function() {
+            const toggle = document.getElementById("new-mnemonic-toggle");
+            const input = document.getElementById("new-mnemonic-display");
+            const copyBtn = document.getElementById("copy-mnemonic");
+            if (toggle && input) {
+                toggle.addEventListener("click", function() {
+                    const isHidden = input.type === "password";
+                    input.type = isHidden ? "text" : "password";
+                    toggle.textContent = isHidden ? "Hide" : "Show";
+                });
+            }
+            if (copyBtn && input) {
+                copyBtn.addEventListener("click", function() {
+                    input.select();
+                    input.setSelectionRange(0, 99999);
+                    navigator.clipboard.writeText(input.value).then(function() {
+                        copyBtn.textContent = "Copied";
+                        setTimeout(function() { copyBtn.textContent = "Copy to clipboard"; }, 2000);
+                    });
+                });
+            }
+        })();
+    </script>
+
+    <footer class="site-footer">
+        <a href="/privacy">Privacy Policy</a>
+    </footer>
+</body>
+</html>

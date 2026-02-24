@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stats - Cryptic Notes</title>
+    <link rel="stylesheet" href="{{ url_for('static', path='index.css') }}">
+</head>
+<body class="stats-page">
+    <header class="header">
+        <h1>🔐 Cryptic Notes</h1>
+        <a href="/" class="back-link">← Back to app</a>
+    </header>
+
+    <main class="stats-container">
+        <h2 class="stats-title">Database Statistics</h2>
+        
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-number">{{ user_count }}</div>
+                <div class="stat-label">Total Accounts</div>
+            </div>
+            
+            <div class="stat-card">
+                <div class="stat-number">{{ total_notes }}</div>
+                <div class="stat-label">Total Notes</div>
+            </div>
+        </div>
+
+        <div class="stats-info">
+            <p>This information is publicly available for transparency purposes.</p>
+        </div>
+    </main>
+
+    <style>
+        .stats-page {
+            min-height: 100vh;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+        }
+
+        .back-link {
+            color: #94a3b8;
+            text-decoration: none;
+            font-size: 0.9rem;
+            transition: color 0.2s;
+        }
+
+        .back-link:hover {
+            color: #e2e8f0;
+        }
+
+        .stats-container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 2rem 1.5rem;
+        }
+
+        .stats-title {
+            text-align: center;
+            color: #e2e8f0;
+            font-size: 2rem;
+            margin-bottom: 3rem;
+            font-weight: 600;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 3rem;
+        }
+
+        .stat-card {
+            background: rgba(30, 41, 59, 0.8);
+            border: 1px solid rgba(148, 163, 184, 0.1);
+            border-radius: 1rem;
+            padding: 2rem;
+            text-align: center;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        .stat-number {
+            font-size: 3rem;
+            font-weight: 700;
+            color: #3b82f6;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-label {
+            font-size: 1rem;
+            color: #94a3b8;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .stats-info {
+            text-align: center;
+            color: #64748b;
+            font-size: 0.9rem;
+            padding-top: 2rem;
+            border-top: 1px solid rgba(148, 163, 184, 0.1);
+        }
+    </style>
+
+    <footer class="site-footer">
+        <a href="/privacy">Privacy Policy</a>
+    </footer>
+</body>
+</html>

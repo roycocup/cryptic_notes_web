@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Note - Cryptic Notes</title>
+    <link rel="stylesheet" href="{{ url_for('static', path='edit.css') }}">
+</head>
+<body>
+    <h1>✏️ Edit Note</h1>
+    
+    <div id="loading">Decrypting note...</div>
+    
+    <form method="post" action="./save" id="edit-form" style="display: none;">
+        <input type="hidden" name="note_id" value="{{ note_id }}">
+        <!-- Removed mnemonic hidden input - using cookie instead -->
+        
+        <label for="title">Title</label>
+        <input type="text" name="title" id="title" value="">
+        
+        <label for="body">Content</label>
+        <textarea name="body" id="body"></textarea>
+        
+        <div class="checkbox-field">
+            <input type="checkbox" name="nsfw" id="nsfw" value="1"{% if nsfw %} checked{% endif %}>
+            <label for="nsfw">NSFW</label>
+        </div>
+        
+        <button type="submit">Save</button>
+        <button type="button" class="cancel" onclick="history.back()">Cancel</button>
+    </form>
+
+    <form method="post" action="./delete" id="delete-form">
+        <input type="hidden" name="note_id" value="{{ note_id }}">
+        <!-- Removed mnemonic hidden input - using cookie instead -->
+        <button type="button" class="delete-btn" id="delete-trigger">Delete note</button>
+        <div id="delete-modal" class="modal" aria-hidden="true">
+            <div class="modal-overlay" data-modal-close></div>
+            <div class="modal-dialog" role="dialog" aria-modal="true" aria-labelledby="delete-modal-title">
+                <h3 id="delete-modal-title">Delete note?</h3>
+                <p class="modal-text">This action cannot be undone.</p>
+                <div class="modal-actions">
+                    <button type="button" class="secondary" data-modal-close>Cancel</button>
+                    <button type="submit" class="danger">Delete</button>
+                </div>
+            </div>
+        </div>
+    </form>
+
+    <footer class="site-footer">
+        <a href="/privacy">Privacy Policy</a>
+    </footer>
+
+    <script src="{{ url_for('static', path='crypto.js') }}"></script>
+    <script>
+        // Client-side decryption for edit page
+        (async function() {
+            const ciphertext = "{{ ciphertext }}";
+            const iv = "{{ iv }}";
+            
+            if (!ciphertext || !iv) {
+                document.getElementById("loading").textContent = "Error: Missing note data";
+                return;
+            }
+            
+            try {
+                const response = await fetch("/api/mnemonic");
+                if (!response.ok) {
+                    throw new Error("Failed to get mnemonic");
+                }
+                const { mnemonic } = await response.json();
+                
+                const decrypted = await CryptoService.decryptNote(ciphertext, iv, mnemonic);
+                
+                document.getElementById("title").value = decrypted.title || "";
+                document.getElementById("body").value = decrypted.body || "";
+                document.getElementById("loading").style.display = "none";
+                document.getElementById("edit-form").style.display = "block";
+            } catch (error) {
+                console.error("Decryption error:", error);
+                document.getElementById("loading").textContent = "Error decrypting note. Please try again.";
+            }
+        })();
+    </script>
+
+    <script src="{{ url_for('static', path='edit.js') }}" defer></script>
+</body>
+</html>
+
